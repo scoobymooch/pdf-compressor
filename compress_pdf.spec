@@ -79,6 +79,7 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name="PDF Compressor.app",
+    icon="assets/icon.icns",
     bundle_identifier="com.compress-pdf.app",
     info_plist={
         "CFBundleDisplayName": "PDF Compressor",
