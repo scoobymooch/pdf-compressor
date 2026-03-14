@@ -77,21 +77,6 @@ The tool searches for encoders in this order:
 3. Common Homebrew locations (`/opt/homebrew/bin/`, `/usr/local/bin/`)
 4. Falls back to Pillow's built-in JPEG encoder
 
-## Performance
-
-Tested on five design/marketing PDFs totalling ~516 MB:
-
-| File | Original | Compressed | Reduction |
-|---|---|---|---|
-| MySports | 160 MB | 16.6 MB | 89.6% |
-| Company | 64 MB | 8.0 MB | 87.7% |
-| Concacaf | 160 MB | 16.0 MB | 90.0% |
-| Deltatre | 64 MB | 8.7 MB | 86.3% |
-| UEFA | 68 MB | 6.7 MB | 90.1% |
-| **Total** | **516 MB** | **56 MB** | **89.2%** |
-
-(Distance = 7.0, jpegli encoder)
-
 ## License
 
 MIT — see [LICENSE](LICENSE).
