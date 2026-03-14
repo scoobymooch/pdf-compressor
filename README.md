@@ -1,6 +1,6 @@
 # PDF Compressor
 
-Compress PDFs locally on macOS — no uploads, no accounts. Cuts 85–93% off design and marketing PDFs, on par with ilovepdf.
+Compress PDFs locally on macOS — no uploads, no accounts. Cuts 85–93% off design and marketing PDFs.
 
 ## How it works
 
