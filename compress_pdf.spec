@@ -3,6 +3,7 @@
 PyInstaller spec for compress_pdf.
 
 Bundles:
+  - main.py (unified CLI + GUI entry point)
   - compress_pdf.py + pikepdf + Pillow (with their delocated dylibs)
   - cjpegli   (jpegli encoder + libjxl dylibs from build dir)
   - cjpeg     (mozjpeg encoder + libjpeg from Homebrew)
@@ -61,7 +62,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
-    console=True,
+    console=False,  # no terminal window when double-clicked
 )
 
 coll = COLLECT(
@@ -73,4 +74,23 @@ coll = COLLECT(
     upx=False,
     upx_exclude=[],
     name="compress-pdf",
+)
+
+app = BUNDLE(
+    coll,
+    name="PDF Compressor.app",
+    bundle_identifier="com.compress-pdf.app",
+    info_plist={
+        "CFBundleDisplayName": "PDF Compressor",
+        "CFBundleShortVersionString": "1.0.0",
+        "NSHighResolutionCapable": True,
+        "NSRequiresAquaSystemAppearance": False,
+        # Allow PDFs to be opened with this app
+        "CFBundleDocumentTypes": [{
+            "CFBundleTypeName": "PDF Document",
+            "CFBundleTypeExtensions": ["pdf"],
+            "CFBundleTypeRole": "Editor",
+            "LSHandlerRank": "Alternate",
+        }],
+    },
 )
