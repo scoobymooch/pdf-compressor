@@ -1,0 +1,7 @@
+# Core compression dependencies
+pikepdf>=8.0.0
+Pillow>=10.0.0
+
+# Optional: drag-and-drop support for the GUI
+# Install separately — see DEVELOPMENT.md for macOS Tcl/Tk notes
+tkinterdnd2>=0.3.0
