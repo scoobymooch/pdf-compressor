@@ -2,7 +2,6 @@
 """PDF Compressor — macOS drag-and-drop GUI."""
 
 import sys
-import re
 import threading
 import queue
 import subprocess
@@ -17,9 +16,6 @@ except ImportError:
     _HAS_TKDND_IMPORT = False
 HAS_DND = False  # set to True only if TkinterDnD.Tk() succeeds
 
-# CLI script path (works both from source and PyInstaller bundle)
-_HERE = Path(__file__).resolve().parent
-_CLI  = _HERE / "compress_pdf.py"
 DEFAULT_DISTANCE = 7.0
 
 W, H   = 380, 215
@@ -234,65 +230,22 @@ class App:
 
         def run():
             try:
-                # ── Step 1: quick count for determinate progress bar ──────────
-                count_out = subprocess.run(
-                    [sys.executable, "-u", str(_CLI), str(input_path), "--count-only"],
-                    capture_output=True, text=True,
+                import compress_pdf as cli
+
+                def on_progress(done, total):
+                    self._q.put(("img", done, total))
+
+                stats = cli.compress_pdf(
+                    input_path,
+                    self._output_path,
+                    distance=DEFAULT_DISTANCE,
+                    progress_callback=on_progress,
                 )
-                total = 0
-                for ln in count_out.stdout.splitlines():
-                    if ln.startswith("image_count:"):
-                        total = int(ln.split(":")[1])
-                if total > 0:
-                    self._q.put(("total", total))
-
-                # ── Step 2: compress ──────────────────────────────────────────
-                cmd = [
-                    sys.executable, "-u", str(_CLI),
-                    str(input_path),
-                    "-o", str(self._output_path),
-                    "--distance", str(DEFAULT_DISTANCE),
-                    "-v",
-                ]
-                proc = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    bufsize=1,
-                )
-
-                lines = []
-                n_images = 0
-                for line in proc.stdout:
-                    line = line.rstrip()
-                    lines.append(line)
-                    if re.match(r"\s+\[", line):
-                        n_images += 1
-                        self._q.put(("img", n_images, total))
-
-                proc.wait()
-
-                if proc.returncode != 0:
-                    self._q.put(("error", "\n".join(lines[-5:])))
-                    return
-
-                stats = {}
-                for line in lines:
-                    m = re.search(
-                        r"([\d.]+) MB\s*→\s*([\d.]+) MB.*?([\d.]+)%\s*reduction",
-                        line,
-                    )
-                    if m:
-                        stats["in_mb"]         = float(m.group(1))
-                        stats["out_mb"]        = float(m.group(2))
-                        stats["reduction_pct"] = float(m.group(3))
-
-                if stats:
-                    self._q.put(("done", stats))
-                else:
-                    self._q.put(("error",
-                                 "Could not parse output:\n" + "\n".join(lines[-8:])))
+                self._q.put(("done", {
+                    "in_mb": stats["in_mb"],
+                    "out_mb": stats["out_mb"],
+                    "reduction_pct": stats["reduction_pct"],
+                }))
 
             except Exception as e:
                 self._q.put(("error", str(e)))
@@ -306,14 +259,14 @@ class App:
             while True:
                 msg = self._q.get_nowait()
                 kind = msg[0]
-                if kind == "total":
-                    self._total_images = msg[1]
-                    self._progress_bar.stop()
-                    self._progress_bar.config(
-                        mode="determinate", maximum=self._total_images, value=0
-                    )
-                elif kind == "img":
-                    done = msg[1]
+                if kind == "img":
+                    done, total = msg[1], msg[2]
+                    if total and not self._total_images:
+                        self._total_images = total
+                        self._progress_bar.stop()
+                        self._progress_bar.config(
+                            mode="determinate", maximum=total, value=0
+                        )
                     self._progress_bar.config(value=done)
                     t = self._total_images
                     lbl = f"Image {done} of {t}" if t else f"Image {done}…"

@@ -24,11 +24,13 @@ if Path(CJPEG_SRC).exists():
     external_binaries.append((CJPEG_SRC, "."))
 
 a = Analysis(
-    ["scripts/compress_pdf.py"],
+    ["scripts/main.py"],
     pathex=[],
     binaries=external_binaries,
     datas=[],
     hiddenimports=[
+        "compress_pdf",
+        "compress_pdf_gui",
         "pikepdf._core",
         "pikepdf.models",
         "pikepdf.objects",
@@ -36,6 +38,9 @@ a = Analysis(
         "PIL.Image",
         "PIL.JpegImagePlugin",
         "PIL.PngImagePlugin",
+        "tkinter",
+        "tkinter.ttk",
+        "tkinter.filedialog",
     ],
     hookspath=["hooks"],
     hooksconfig={},
